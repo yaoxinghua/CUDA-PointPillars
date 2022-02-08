@@ -39,6 +39,12 @@ $ make -j$(nproc)
 ```shell
 $ ./demo
 ```
+
+## Visualize
+```shell
+cd visualize
+python viewer.py
+```
 ## Enviroments
 
 - Jetpack 4.5

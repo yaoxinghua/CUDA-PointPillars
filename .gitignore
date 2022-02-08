@@ -122,3 +122,6 @@ cmake-build*
 ## onnx
 */*.onnx
 *.onnx.cache
+
+## python
+*/__pycache__
