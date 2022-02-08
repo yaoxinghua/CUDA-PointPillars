@@ -246,10 +246,10 @@ int PointPillar::doinfer(void*points_data, unsigned int points_size, std::vector
 #if GENERATE_VOXELS_BY_CPU
   pre_->clearCacheCPU();
   pre_->generateVoxels_cpu((float*)points_data, points_size,
-        params_input,
-        voxel_features, 
+        params_input_,
+        voxel_features_, 
         voxel_num_points_,
-        coords);
+        coords_);
   checkCudaErrors(cudaDeviceSynchronize());
 #else
   pre_->generateVoxels((float*)points_data, points_size,
