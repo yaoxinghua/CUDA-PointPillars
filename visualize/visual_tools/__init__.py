@@ -32,7 +32,7 @@ def create_box_with_arrow(box, color=None):
 def draw_clouds_with_boxes(cloud , boxes):
     """
     cloud: (N, 4)  [x, y, z, intensity]
-    boxes: (n,7) np.array = n*7  ( x, y, z, dx, dy, dz, yaw) 
+    boxes: (n,7) np.array = n*9  ( x, y, z, dx, dy, dz, yaw, cls_id, score) 
     """
     vis = o3d.visualization.Visualizer()
     vis.create_window()
@@ -55,7 +55,9 @@ def draw_clouds_with_boxes(cloud , boxes):
 
     # create boxes
     for box in boxes:
-        box_o3d, arrow = create_box_with_arrow(box, cur_box_color)
+        cls_id = box[7]
+        cur_box_color = [1, 0, 0] if cls_id == 1 else [0, 1, 0]
+        box_o3d, arrow = create_box_with_arrow(box[:7], cur_box_color)
         boxes_o3d.append(box_o3d)
         boxes_o3d.append(arrow)
     # add_geometry fro boxes
