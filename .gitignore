@@ -120,8 +120,12 @@ cmake-build*
 *.active
 
 ## onnx
-*/*.onnx
-*.onnx.cache
+**/*.onnx
+**/*.onnx.cache
 
 ## python
-*/__pycache__
+**/__pycache__
+
+
+## data
+data

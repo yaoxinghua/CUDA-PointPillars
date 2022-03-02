@@ -69,7 +69,7 @@ void SaveBoxPred(std::vector<Bndbox> boxes, std::string file_name)
     return;
 };
 
-void Getinfo(void)
+int Getinfo(void)
 {
   cudaDeviceProp prop;
 
@@ -90,6 +90,7 @@ void Getinfo(void)
     printf("  grid dim: (%d,%d,%d)\n", prop.maxGridSize[0], prop.maxGridSize[1], prop.maxGridSize[2]);
   }
   printf("\n");
+  return count;
 }
 
 int loadData(const char *file, void **data, unsigned int *length)
@@ -127,7 +128,10 @@ int loadData(const char *file, void **data, unsigned int *length)
 
 int main(int argc, const char **argv)
 {
-  Getinfo();
+  if(Getinfo() == 0) {
+    std::cout << "No GPU avaiable!" << std::endl;
+    return 0;
+  }
 
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;

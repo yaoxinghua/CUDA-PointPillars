@@ -16,6 +16,8 @@
 import argparse
 import glob
 from pathlib import Path
+import json
+import re
 
 import numpy as np
 import torch
@@ -90,6 +92,8 @@ def parse_config():
 
 def main():
     args, cfg = parse_config()
+    with open('param.json', 'w') as fo:
+        json.dump(cfg, fo, default=lambda o: '<not serializable>', indent=2)
     export_paramters(cfg)
     logger = common_utils.create_logger()
     logger.info('------ Convert OpenPCDet model for TensorRT ------')
