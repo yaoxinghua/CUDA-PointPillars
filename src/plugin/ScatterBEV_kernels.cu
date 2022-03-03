@@ -20,8 +20,8 @@
 
 #include "ScatterBEV_kernels.h"
 
-__global__ void scatterBEV_kernel(const float *pillar_features_data,
-          const float *coords_data, const unsigned int *params_data,
+__global__ void scatterBEV_kernel(const float *pillar_features_data, // in
+          const float *coords_data, const unsigned int *params_data, // in
           unsigned int featureX, unsigned int featureY,
           float *spatial_feature_data)
 {

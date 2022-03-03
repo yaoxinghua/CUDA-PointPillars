@@ -49,10 +49,10 @@ int PreProcessCuda::clearCacheCPU(void)
 }
 
 void PreProcessCuda::generateVoxels_cpu(float* points, size_t points_size,
-    unsigned int* pillarCount,
-    float* voxel_features,
-    float* voxel_num_points,
-    float* coords)
+    unsigned int* pillarCount,  // output: int[5]:pillarCount的参数
+    float* voxel_features, // out:  voxel_features
+    float* voxel_num_points, // out: 每个voxel的point数量
+    float* coords)  // out: coords记录voxel id映射到BEV下的，indexZ,indexY, indexX
 {
   const static float point_cloud_range[6] = {0., -39.68, -3., 69.12, 39.68, 1.};
   const static float voxel_size[3] = {0.16, 0.16, 4.};
@@ -83,12 +83,14 @@ void PreProcessCuda::generateVoxels_cpu(float* points, size_t points_size,
 */
 
   static int voxel_num_pervious = 0;
+  // 重新初始化num_points_per_voxel为0，这里也可以全部初始化为0
   for(int i =0;i< voxel_num_pervious;i++)
   {
     num_points_per_voxel[i] = 0.0f;
   }
 
   for(int i=0; i<N; i++) {
+    // 过滤range外的点
     if( !(points[i*num_features]>=point_cloud_range[0] && points[i*num_features]<point_cloud_range[3]
         && points[i*num_features+1]>=point_cloud_range[1] && points[i*num_features+1]<point_cloud_range[4]
         && points[i*num_features+2]>=point_cloud_range[2] && points[i*num_features+2]<point_cloud_range[5]
@@ -96,6 +98,7 @@ void PreProcessCuda::generateVoxels_cpu(float* points, size_t points_size,
       continue;
     }
 
+    // 向下取整计算当前点的 voxel index
     indexX = floor((points[i*num_features + 0] - point_cloud_range[0]) / voxel_size[0]);
     indexY = floor((points[i*num_features + 1] - point_cloud_range[1]) / voxel_size[1]);
     indexZ = floor((points[i*num_features + 2] - point_cloud_range[2]) / voxel_size[2]);
@@ -105,26 +108,28 @@ void PreProcessCuda::generateVoxels_cpu(float* points, size_t points_size,
       if (voxel_num >= max_voxels) {
           continue;
       }
-      voxel_idx = voxel_num;
-      voxel_num += 1;
-      coor_to_voxelidx[indexZ][indexY][indexX] = voxel_idx;
-      // coors type: 0,z,y,z
+      voxel_idx = voxel_num;  // 将voxel_num数量作为voxel的id
+      voxel_num += 1; // 数量+1
+      coor_to_voxelidx[indexZ][indexY][indexX] = voxel_idx;  //更新voxel_id到coor的映射表
+      // coors type: 0,z,y,z格式
       coors[voxel_idx*num_features+0+1] = indexZ;
       coors[voxel_idx*num_features+1+1] = indexY;
       coors[voxel_idx*num_features+2+1] = indexX;
     }
+
     num = (int)(num_points_per_voxel[voxel_idx]);
     if (num < max_num_points) {
+      // 若小于最大的点云，则插入点云
       for(int k=0; k<num_features;k++) {
           voxels[voxel_idx*max_num_points*num_features + num*num_features + k]
             = points[i*num_features + k];
       }
-      num_points_per_voxel[voxel_idx] += 1.0;
+      num_points_per_voxel[voxel_idx] += 1.0; //将该voxel的点云数量+1
     }
   }
 
-  pillarCount[4] = voxel_num;
-  voxel_num_pervious = voxel_num;
+  pillarCount[4] = voxel_num;  // 更新pointpillar数量
+  voxel_num_pervious = voxel_num; // 更新上一帧点云的voxel数量
   return;
 }
 //convert points cloud into voxexls by CPU>>

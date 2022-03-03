@@ -89,13 +89,13 @@ private:
     std::string mNamespace;
 
     // the num -- output channels size of the 2D backbone network
-    const int featureNum_ = 64;
+    const int featureNum_ = 64; // hard 写法太挫了
 
     // the y -- output size of the 2D backbone network
-    const int feature_y_size_ = 496;
+    const int feature_y_size_ = 496; // hard 写法太挫了
 
     // the x -- output size of the 2D backbone network
-    const int feature_x_size_ = 432;
+    const int feature_x_size_ = 432;   // hard 写法太挫了
 
     void *cacheBEV_ = nullptr;
 };

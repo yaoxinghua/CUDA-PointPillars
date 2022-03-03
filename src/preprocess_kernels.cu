@@ -314,6 +314,7 @@ __global__ void generateFeatures_kernel(float* voxel_features,
     mean.y = pillarSumSM[pillar_idx_inBlock].y / validPoints;
     mean.z = pillarSumSM[pillar_idx_inBlock].z / validPoints;
 
+    // Xc, Yc, Zc,  当前点距离voxel clustr均值中心的偏移，跟周围点有关
     mean.x  = pillarSM[pillar_idx_inBlock][point_idx].x - mean.x;
     mean.y  = pillarSM[pillar_idx_inBlock][point_idx].y - mean.y;
     mean.z  = pillarSM[pillar_idx_inBlock][point_idx].z - mean.z;
@@ -326,6 +327,7 @@ __global__ void generateFeatures_kernel(float* voxel_features,
 
     //feature-offset
     float4 center;
+    // Xp, Yp, Zp， 当前点到voxel中心的偏移，跟周围点无关
     center.x  = pillarSM[pillar_idx_inBlock][point_idx].x - x_offset;
     center.y  = pillarSM[pillar_idx_inBlock][point_idx].y - y_offset;
     center.z  = pillarSM[pillar_idx_inBlock][point_idx].z - z_offset;

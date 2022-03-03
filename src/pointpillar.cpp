@@ -173,12 +173,12 @@ PointPillar::PointPillar(std::string modelFile, cudaStream_t stream):stream_(str
   post_.reset(new PostProcessCuda(stream_));
 
   //input of pre-process
-  voxel_features_size_ = MAX_VOXELS * params_.max_num_points_per_pillar * 4 * sizeof(float);
-  voxel_num_points_size_ = MAX_VOXELS * sizeof(float);
-  coords_size_ = MAX_VOXELS* 4 * sizeof(float);
+  voxel_features_size_ = MAX_VOXELS * params_.max_num_points_per_pillar * 4 * sizeof(float); // 原始point pillar的空间大小
+  voxel_num_points_size_ = MAX_VOXELS * sizeof(float); // 记录每个voxel的point数量需要的空间
+  coords_size_ = MAX_VOXELS* 4 * sizeof(float); //记录
 
-  checkCudaErrors(cudaMallocManaged((void **)&voxel_features_, voxel_features_size_));
-  checkCudaErrors(cudaMallocManaged((void **)&voxel_num_points_, voxel_num_points_size_));
+  checkCudaErrors(cudaMallocManaged((void **)&voxel_features_, voxel_features_size_));  //申请原始point pillar的空间
+  checkCudaErrors(cudaMallocManaged((void **)&voxel_num_points_, voxel_num_points_size_)); // 记录每个voxel的point数量
   checkCudaErrors(cudaMallocManaged((void **)&coords_, MAX_VOXELS* 4 * sizeof(float)));
 
   checkCudaErrors(cudaMemsetAsync(voxel_features_, 0, voxel_features_size_, stream_));
@@ -187,13 +187,12 @@ PointPillar::PointPillar(std::string modelFile, cudaStream_t stream):stream_(str
 
 
   //TRT-input
-  features_input_size_ = MAX_VOXELS * params_.max_num_points_per_pillar * 10 * sizeof(float);
+  features_input_size_ = MAX_VOXELS * params_.max_num_points_per_pillar * 10 * sizeof(float); // 10channel: x, y, z, r, Xc, Yc, Zc, Xp, Yp, Zp
   checkCudaErrors(cudaMallocManaged((void **)&features_input_, features_input_size_));
   checkCudaErrors(cudaMallocManaged((void **)&params_input_, 5 * sizeof(unsigned int)));
 
-  checkCudaErrors(cudaMemsetAsync(features_input_, 0, features_input_size_, stream_));
+  checkCudaErrors(cudaMemsetAsync(features_input_, 0, features_input_size_, stream_)); // init to zero
   checkCudaErrors(cudaMemsetAsync(params_input_, 0, 5 * sizeof(float), stream_));
-
 
   //output of TRT -- input of post-process
   cls_size_ = params_.feature_x_size * params_.feature_y_size * params_.num_classes * params_.num_anchors * sizeof(float);
@@ -246,10 +245,10 @@ int PointPillar::doinfer(void*points_data, unsigned int points_size, std::vector
 #if GENERATE_VOXELS_BY_CPU
   pre_->clearCacheCPU();
   pre_->generateVoxels_cpu((float*)points_data, points_size,
-        params_input_,
-        voxel_features_, 
-        voxel_num_points_,
-        coords_);
+        params_input_,   // output：int[5]: (1, featureChannel, grid_y_size, grid_x_size, num_pillars)
+        voxel_features_,  // output: voxel_feature 结果
+        voxel_num_points_, // out:每个voxel的point数量
+        coords_); // out: voxel_id到indexZ，indexY，indexZ的映射表
   checkCudaErrors(cudaDeviceSynchronize());
 #else
   pre_->generateVoxels((float*)points_data, points_size,
@@ -280,11 +279,11 @@ int PointPillar::doinfer(void*points_data, unsigned int points_size, std::vector
   checkCudaErrors(cudaEventRecord(start_, stream_));
 #endif
 
-  pre_->generateFeatures(voxel_features_,
-      voxel_num_points_,
-      coords_,
-      params_input_,
-      features_input_);
+  pre_->generateFeatures(voxel_features_, // in
+      voxel_num_points_, //in: 每个voxel的point数量
+      coords_, // in: voxel_id到indexZ, indexY, indexZ的映射表
+      params_input_, // in: 只使用了pillar数量
+      features_input_); // out: channel 10 per point
 
 #if PERFORMANCE_LOG
   checkCudaErrors(cudaEventRecord(stop_, stream_));
@@ -297,7 +296,7 @@ int PointPillar::doinfer(void*points_data, unsigned int points_size, std::vector
   checkCudaErrors(cudaEventRecord(start_, stream_));
 #endif
 
-  void *buffers[] = {features_input_, coords_, params_input_, cls_output_, box_output_, dir_cls_output_};
+  void *buffers[] = {features_input_, coords_, params_input_, cls_output_, box_output_, dir_cls_output_}; //bindings地址
   trt_->doinfer(buffers);
   checkCudaErrors(cudaMemsetAsync(params_input_, 0, 5 * sizeof(unsigned int), stream_));
 

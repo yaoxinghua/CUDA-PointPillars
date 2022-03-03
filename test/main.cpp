@@ -166,20 +166,21 @@ int main(int argc, const char **argv)
     loadData(dataFile.data(), &data, &length);
     buffer.reset((char *)data);
 
-    float* points = (float*)buffer.get();
-    size_t points_size = length/sizeof(float)/4;
+    float* points = (float*)buffer.get(); // points数组
+    size_t points_size = length/sizeof(float)/4;  // point: x, y, z, r
 
     std::cout << "find points num: "<< points_size <<std::endl;
 
     float *points_data = nullptr;
     unsigned int points_data_size = points_size * 4 * sizeof(float);
-    checkCudaErrors(cudaMallocManaged((void **)&points_data, points_data_size));
-    checkCudaErrors(cudaMemcpy(points_data, points, points_data_size, cudaMemcpyDefault));
-    checkCudaErrors(cudaDeviceSynchronize());
+    checkCudaErrors(cudaMallocManaged((void **)&points_data, points_data_size)); // 为点云申请统一内存
+    checkCudaErrors(cudaMemcpy(points_data, points, points_data_size, cudaMemcpyDefault));  // copy到统一内存
+    checkCudaErrors(cudaDeviceSynchronize()); //同步
 
     cudaEventRecord(start, stream);
 
-    pointpillar.doinfer(points_data, points_size, nms_pred);
+    pointpillar.doinfer(points_data, points_size, nms_pred);   //  送入点云数据+点云数量+结果vector引用
+
     cudaEventRecord(stop, stream);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapsedTime, start, stop);

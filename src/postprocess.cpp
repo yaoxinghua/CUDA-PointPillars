@@ -96,6 +96,9 @@ inline void rotate_around_center(const float2 &center, const float angle_cos, co
     return;
 }
 
+/**
+ * OBB IOU
+ * */
 inline float box_overlap(const Bndbox &box_a, const Bndbox &box_b) {
     float a_angle = box_a.rt, b_angle = box_b.rt;
     float a_dx_half = box_a.w / 2, b_dx_half = box_b.w / 2, a_dy_half = box_a.l / 2, b_dy_half = box_b.l / 2;
@@ -201,7 +204,7 @@ int nms_cpu(std::vector<Bndbox> bndboxes, const float nms_thresh, std::vector<Bn
             if (suppressed[j] == 1) {
                 continue;
             }
-
+            // 只在BEV下进行nms
             float sa = bndboxes[i].w * bndboxes[i].l;
             float sb = bndboxes[j].w * bndboxes[j].l;
             float s_overlap = box_overlap(bndboxes[i], bndboxes[j]);

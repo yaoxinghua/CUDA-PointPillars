@@ -103,7 +103,7 @@ __global__ void postprocess_kernal(const float *cls_input,
     box_encodings[6] = box_encodings[6] + ra;
 
     float yaw;
-    int dir_label = dir_cls_input[dir_cls_offset] > dir_cls_input[dir_cls_offset + 1] ? 0 : 1;
+    int dir_label = dir_cls_input[dir_cls_offset] > dir_cls_input[dir_cls_offset + 1] ? 0 : 1; // driection 为二分类
     float period = 2 * M_PI / 2;
     float val = box_input[box_offset + 6] - dir_offset;
     float dir_rot = val - floor(val / (period + 1e-8) + 0.f) * period;
@@ -119,8 +119,8 @@ __global__ void postprocess_kernal(const float *cls_input,
     data[4] = box_input[box_offset + 4];
     data[5] = box_input[box_offset + 5];
     data[6] = yaw;
-    data[7] = dev_cls[0];
-    data[8] = dev_cls[1];
+    data[7] = dev_cls[0]; // cla_id
+    data[8] = dev_cls[1]; // socre
   }
 }
 

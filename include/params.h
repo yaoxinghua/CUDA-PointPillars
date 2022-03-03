@@ -42,10 +42,11 @@ class Params
     const int num_dir_bins = 2;
     // anchors decode by (x, y, z, dir)
     static const int num_anchors = num_classes * 2;
-    static const int len_per_anchor = 4;
+    static const int len_per_anchor = 4;  // l, w, h, yaw
+    //针对每个类别有2个anchor，分别为0度和90度
     const float anchors[num_anchors * len_per_anchor] = {
-      3.9,1.6,1.56,0.0,
-      3.9,1.6,1.56,1.57,
+      3.9,1.6,1.56,0.0,  // 0
+      3.9,1.6,1.56,1.57, // 90度
       0.8,0.6,1.73,0.0,
       0.8,0.6,1.73,1.57,
       1.76,0.6,1.73,0.0,

@@ -156,7 +156,7 @@ int ScatterBevPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc,
   //cudaMemcpyAsync(paramsPtr, params_data, 5*sizeof(int), cudaMemcpyDefault, stream);
 
   checkCudaErrors(cudaMemsetAsync(spatial_feature_data, 0, batch*featureNum*featureY*featureX * sizeof(float), stream));
-  checkCudaErrors(reduceMax_kernel_launcher((const float*)in, (float*)pillar_features_data, count, stream));
+  checkCudaErrors(reduceMax_kernel_launcher((const float*)in, (float*)pillar_features_data, count, stream));  // 对voxel内的32个点的feature进行maxpooling
   checkCudaErrors(scatterBEV_kernel_launcher(pillar_features_data, coords_data, params_data, featureX, featureY, spatial_feature_data, stream));
 
   return 0;
